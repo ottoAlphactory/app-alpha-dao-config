@@ -1,0 +1,66 @@
+{{- $root := . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name | lower }}
+  labels:
+    {{- include "chart.labels" . | indent 4 }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "chart.labels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "chart.labels" . | indent 8 }}
+    spec:
+      containers:
+      - name: {{ .Values.deployment.mainContainer.name }}
+        image: {{ .Values.deployment.mainContainer.image }}
+        resources:
+          limits:
+            cpu: {{ .Values.deployment.mainContainer.resources.limits.cpu }}
+            memory: {{ .Values.deployment.mainContainer.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.deployment.mainContainer.resources.requests.cpu }}
+            memory: {{ .Values.deployment.mainContainer.resources.requests.memory }}
+        ports:
+        - containerPort: {{ .Values.deployment.mainContainer.ports.containerPort }}
+          name: {{ .Values.deployment.mainContainer.ports.name | quote }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.configMapName }}
+        {{- if $.Values.deployment.mainContainer.livenessProbe.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.deployment.mainContainer.livenessProbe.httpGet.path }}
+            port: {{ .Values.deployment.mainContainer.livenessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.deployment.mainContainer.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.deployment.mainContainer.livenessProbe.periodSeconds }}
+        {{- end }}
+      #   volumeMounts:
+      #   - name: secrets-volume
+      #     mountPath: "/root/.microsoft/usersecrets"
+      #     readOnly: true
+      #   - name: aspnet-https
+      #     mountPath: "/root/.aspnet/https"
+      #     readOnly: true
+      # volumes:
+      # - name: secrets-volume
+      #   secret:
+      #     secretName: db-credentials-services-user
+      # - name: aspnet-https
+      #   emptyDir: {}
+        {{- if $.Values.deployment.mainContainer.readinessProbe.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.deployment.mainContainer.readinessProbe.httpGet.path }}
+            port: {{ .Values.deployment.mainContainer.readinessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.deployment.mainContainer.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.deployment.mainContainer.readinessProbe.periodSeconds }}
+        {{- end}}
+      {{- if $.Values.deployment.imagePullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.deployment.imagePullSecrets | quote }}
+      {{- end }}

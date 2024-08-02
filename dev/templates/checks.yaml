@@ -1,0 +1,5 @@
+{{- if eq $.Values.deployment.mainContainer.ports.containerPort $.Values.service.targetPort }}
+---
+{{- else }}
+{{ fail "ContainerPort and Service TargetPort are not equal" }}
+{{- end -}}

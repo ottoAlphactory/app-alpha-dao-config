@@ -1,0 +1,101 @@
+namespace: alphinance-dev
+## Global Labels
+labels:
+  app: alpha-dao
+  project: alphinance
+## Environment
+# Defines the environment name
+environment: dev
+## Service values
+# Type: Defines service tpe
+# port: Defines in which port shall the service listen
+# targetPort: Defines to which port shall the data be sent to the container
+# name: names the port/targetPort clutter. Normally named http unless there is other port on it
+service:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http
+    - port: 5001
+      targetPort: 5001
+      name: grpc
+
+## Deployment values
+deployment:
+  ## imagePullSecrets
+  # defines the secret to be used as credentials for imagePullSecret for the containers
+  # if value = "", then it won't be used
+  imagePullSecrets: "aws-ecr-secret-dao"
+  ## mainContainer
+  # image: Defines the image to be used (Automatically updated on each deployment)
+  # name: just a name for the port
+  # ports
+  #   containerPort: the port iin which the app is listenint
+  #   name: just a name for the port
+  mainContainer:
+    image: "670173407663.dkr.ecr.us-east-1.amazonaws.com/alpha-dao-dev:24c1648bd8a5ca40f3183f993b91d4c8d8a7c25e"
+    name: alpha-dao
+    ports:
+      - containerPort: 80
+        name: http
+      - containerPort: 5001
+        name: grpc
+    livenessProbe:
+      enabled: false
+      httpGet:
+        path: /healthcheck
+        port: 2000
+      initialDelaySeconds: 30
+      periodSeconds: 30
+    readinessProbe:
+      enabled: false
+      httpGet:
+        path: /healthcheck
+        port: 2000
+      initialDelaySeconds: 30
+      periodSeconds: 30
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 250Mi
+## HPA
+# enabled: if true will create a HorizontalPodAutoscaler resource
+# maxReplicas: maximum number of replicas
+# minReplicas: minimum number of replicas
+# targetCPU: target percentage of the CPU
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPU: 70
+
+## Service Account
+# create: if true, will create a new ServiceAccount
+# existingSaName: only used if create = false, the name of an existing ServiceAccount to be used
+#
+# iamRole: IAM Role to be mounted to the pod. if "" nothing will be mounted
+serviceAccount:
+  create: true
+  existingSaName: ""
+  iamRole: ""
+
+configMapName: configmap-dao
+
+config:
+  aspnetcoreEnvironment: Development
+  aspnetcoreUrls: http://+:80
+
+secretName: aws-ecr-secret-sdao
+dockerConfigJson: "eyJwYXlsb2FkIjoiL0JtY3ExRkZwSlJteldoQ2ovc3dHMzJrVWVranVOSytCTmVKck5EclM3SVQwaG5iaFNzZE1pU2tEWWxSamFzekxmeU9OUS82WitnbFNPU2Z0OEIxeHhVekJRNTZWSmlCbmlDNzJpMVBLMnE5cDBOUXloUFd2MjdQUGFKSHpUSXFjQUtkRjBYS0hPWkJkUVBFQ2NqQW95cE9YVnJqVy9ObXJrNE5CMWg2eXFLMUZkYmxGbnZDY0YxcG5Gcnl3MkFySUJxeHVHeTYxTVFmdWdXc05CZS84VnNqNEZEZFVGYnBwZ08xc0dlbzN1YzRXckMwc1dOQ2FIMHErMzBJUnZFaDZoQ0RhR295aTRYeElUN05ZdGsxeGdVUXVHNGJhdGJTSlZRQzNvcTBPcDIyZzB6YmdUdEd6a21LYU1GbU5uM0ZLamIra2U2YS8xbFlUUUp6bExONzBFSUY5K01zcDBUeEFXS0NCckZ1L2JKR3J4am5yd09nVE9SNlkyQis5OHp1UWhnbDZ4TERUYVhBWTlCdDNzazJRNitpL2NaYUN3SVc4aDJ6dDc5ZUt1dGJTc25FdUlyMDV5YXA5NHpFTmVDL21NUDBJNURheThFeWZIZjBLSm4xRmRzYjBqdVdGRjhzTkRKdTRERmFJV1YyajQ1cmVMc3ZodzBJNVJSNHdENHMySjQreXkvMjN5TjRaaGZ1U2lPbDZoWTJ3UnVLVldPUmRXL2h4dFo0S0ZaZEYyVUl1eUFicllDNzdiNjl6d3RwSy9SU0U0bGhuZmZUd3lieGZsT0RIT09Dd3A0NWFKNlJIdFBRQkw0QTZoWDVlOUh6VlBzb01pR29SbjAwUnl2d2dWWVRnM3dwVEdCU1loMHZqNVRaUlkvc29ZM0dyNkJvMkFKYWlibHNsb3Mra1c5Uy9uMUtPRjRCYnV5NXlVbElkOHVGRjJ5dGt3dkRKQnRjWFEzU2VzQzlkK2E1dWU5a3JFR01oZTcxVGdOMjIwQmE2b1FZb3FtQzI5RWhwOHJ0b0V5QTVrV1FHcVI5YUkwLzNNY0t3VmNtWUdIa3A3Z00ydVgvWDJrajdrcGsyakFlK3JVcWhQRmR6K2s4eTkrVHR1c2pSRzBMcUpSWUg3RXRPeWVVTm9sZVNMV0xRUDh3b0NSRkR5UTUvY3g4NDgrQ2dSTWJDSGp0dHp3b0h5MU9udFZTM2ltamZXVHdwemFWbkhVcWJWcUl4Q2oxbXZuVThob3RlekFWSmh4bTRpaENSbmtWMXNiK0REQjFLbFdsSldocjR5NlJjdkRmWmRRcWpHTE90cU5uMU5xcGQxSzFFT21lVnJUWmRvM2RpaEs1OUNTQ0xuaU5TUmg5bndoNEFuM3I5aDkrY28zRDZvby9Qdz09IiwiZGF0YWtleSI6IkFRRUJBSGh3bTBZYUlTSmVSdEptNW4xRzZ1cWVla1h1b1hYUGU1VUZjZTlScTgvMTR3QUFBSDR3ZkFZSktvWklodmNOQVFjR29HOHdiUUlCQURCb0Jna3Foa2lHOXcwQkJ3RXdIZ1lKWUlaSUFXVURCQUV1TUJFRURPajgveTgxNDh3ZWpUTktDQUlCRUlBNys0akZ6Wk5UNzY4UVNqRVlGVE8zVEpteklKQnAwZ21BYTZtVXkvcS9keWwxenJucGo3RXFVdVlZWXFyZGlLWlpzd3RBT1VjcGowdmozeWs9IiwidmVyc2lvbiI6IjIiLCJ0eXBlIjoiREFUQV9LRVkiLCJleHBpcmF0aW9uIjoxNzEwNDEyNzQyfQ=="
+
+ingressRoute:
+  irName: ingress-route-dao
+  entryPointInsec: web
+  entryPointSec: websecure
+  routesMatch: Host(`alphinance-stg-api.alpha.com.ar`) && PathPrefix(`/api/v1/GenericDao`)
+  grpcMatch: Host(`alphinance-stg-api.alpha.com.ar`) && PathPrefix(`/Greeter`)
+

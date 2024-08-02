@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name | lower }}-service
+  namespace: {{ .Values.namespace | lower | quote }}
+spec:
+  selector:
+    {{- include "chart.labels" . | indent 4 }}
+  type:  {{ .Values.service.type }}
+  ports:
+  - port:  {{ .Values.service.ports[0].port }}
+    targetPort: {{ .Values.service.ports[0].targetPort }}
+    name: {{ .Values.service.ports[0].name | lower | quote }}
+  - port:  {{ .Values.service.ports[1].port }}
+    targetPort: {{ .Values.service.ports[1].targetPort }}
+    name: {{ .Values.service.ports[1].name | lower | quote }}

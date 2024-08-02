@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Values.ingressRoute.irName }}
+spec:
+  entryPoints:
+  - {{ .Values.ingressRoute.entryPointInsec }}
+  - {{ .Values.ingressRoute.entryPointSec }}
+  routes:
+  - kind: Rule
+    match: {{ .Values.ingressRoute.routesMatch }}
+    services:
+    - name: {{ .Release.Name | lower }}-service
+      port: {{ .Values.service.ports[0].port }}
+  - kind: Rule
+    match: {{ .Values.ingressRoute.grpcMatch }}
+    services:
+    - name: {{ .Release.Name | lower }}-service
+      port: {{ .Values.service.ports[1].port }}
